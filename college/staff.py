@@ -4,6 +4,7 @@ from django.db import IntegrityError
 from .models import Subject
 from .decorator import allowed_users
 from django.contrib.auth.decorators import login_required
+from .models import Student
 
 import datetime
 
@@ -12,15 +13,85 @@ YEARS = list(range(year_s, year_s - 6, -1))
 
 
 def attendance(request):
+    user = Staff.object.get(is_teacher=request.user.is_teacher, email=request.user.email)
+    semesters = ExamData.objects.filter(teacher=user).distinct()
+    sem_list = []
+    for sem in semesters:
+        sem_list.append(sem.semester)
+    sem_list = set(sem_list)
     if request.POST:
         return HttpResponse("<h1> greate </h1>")
-    return render(request, "attendance.html")
+    return render(request, "attendance.html",{'sem_list':sem_list})
 
 
 def add_mark(request):
+    user = Staff.object.get(is_teacher=request.user.is_teacher, email=request.user.email)
+    semesters = ExamData.objects.filter(teacher=user).distinct()
+    sem_list = []
+    for sem in semesters:
+        sem_list.append(sem.semester)
+    sem_list = set(sem_list)
+
     if request.POST:
-        return HttpResponse("<h1> greate </h1>")
-    return render(request, "add_mark.html")
+        email = request.POST.get('email')
+        semester = int(request.POST.get('semester'))
+        subject_id = request.POST.get('subject')
+        ca = int(request.POST.get('ca'))
+        mark = int(request.POST.get('mark'))
+        student_name = request.POST.get('student_name')
+
+        # obj
+        staff = Staff.object.get(email=email)
+        student = Student.objects.get(email=student_name)
+        get_subject_id = Subject.objects.get(id=subject_id)
+        examdata = ExamData.objects.get(subject=get_subject_id.id, semester=semester, exam=ca,
+                                        department=staff.department)
+        try:
+            result_obj = Result.objects.get(semester=semester, exam=ca, subject=get_subject_id,
+                                            student=student.id)
+            if ca == 1:
+                if mark <= examdata.total_marks:
+                    result_obj.ca1_marks = mark
+                    result_obj.exam_done_ca1 = True
+                else:
+                    msg = 'It is morethan fullmarks is '+str(examdata.total_marks)
+                    color = 'danger'
+                    return render(request, "add_mark.html", {'sem_list': sem_list, 'msg': msg, 'color': color})
+
+            elif ca == 2:
+                if mark <= examdata.total_marks:
+                    result_obj.ca2_marks = mark
+                    result_obj.exam_done_ca2 = True
+                else:
+                    msg = 'It is morethan fullmarks is ' +str(examdata.total_marks)
+                    color = 'danger'
+                    return render(request, "add_mark.html", {'sem_list': sem_list, 'msg': msg, 'color': color})
+            elif ca == 3:
+                if mark <= examdata.total_marks:
+                    result_obj.ca3_marks = mark
+                    result_obj.exam_done_ca3 = True
+                else:
+                    msg = 'It is morethan fullmarks is ' +str(examdata.total_marks)
+                    color = 'danger'
+                    return render(request, "add_mark.html", {'sem_list': sem_list, 'msg': msg, 'color': color})
+            elif ca == 4:
+                if mark <= examdata.total_marks:
+                    result_obj.ca4_marks = mark
+                    result_obj.exam_done_ca4 = True
+                else:
+                    msg = 'It is morethan fullmarks is ' +str(examdata.total_marks)
+                    color = 'danger'
+                    return render(request, "add_mark.html", {'sem_list': sem_list, 'msg': msg, 'color': color})
+            result_obj.save()
+            msg = 'Mark update successfully'
+            color = 'success'
+
+        except:
+            msg = 'Exam is not register'
+            color = 'danger'
+
+        return render(request, "add_mark.html", {'sem_list': sem_list, 'msg': msg, 'color': color})
+    return render(request, "add_mark.html", {'sem_list': sem_list})
 
 
 from .models import Staff
@@ -428,9 +499,10 @@ def add_question(request):
                 question_obj.save()
                 msg = 'Next question'
                 color = 'success'
-                if (num +1) <= total_questions - 1:
+                if (num + 1) <= total_questions - 1:
                     return render(request, 'add_question.html',
-                                  {'question_no': num + 1, 'total_questions': total_questions, 'msg': msg, 'color': color,
+                                  {'question_no': num + 1, 'total_questions': total_questions, 'msg': msg,
+                                   'color': color,
                                    'sem_list': sem_list})
                 else:
                     msg = 'All question done thank you'
@@ -543,3 +615,22 @@ def load_semester(request):
             year.append(s.semester)
         year = set(year)
         return render(request, 'semester_options.html', {'Semester': year})
+
+
+def add_mark_load_student(request):
+    if request.GET.get('semester') is "":
+        subject = {}
+        return render(request, 'load_student.html', {'Subjects': subject})
+    elif request.GET.get('email') is "":
+        subject = {}
+        return render(request, 'load_student.html', {'Subjects': subject})
+    else:
+
+        dep = Staff.object.get(email=request.GET.get('email'))
+        semester = request.GET.get('semester')
+        if Student.objects.filter(semester=semester, department=dep.department):
+            students = Student.objects.filter(semester=semester, department=dep.department)
+            return render(request, 'loadstudent.html', {'students': students})
+        else:
+            students = {}
+            return render(request, 'loadstudent.html', {'students': students})

@@ -507,7 +507,7 @@ def question_view(request, semester, ca, subject, question_id):
             student = Student.objects.get(email=request.user.email)
             correct_ans = Question.objects.get(semester=semester, exam=ca, subject=get_subject.id,
                                                question_no=question_id)
-            print(request.POST.get('option'))
+
             if question_id == 1 and (request.POST.get('option') != None):
                 option = request.POST.get('option')
                 # exam
@@ -528,7 +528,18 @@ def question_view(request, semester, ca, subject, question_id):
                 else:
                     result_obj = Result.objects.get(semester=semester, exam=ca, subject=get_subject.id,
                                                     student=student.id)
-                    result_obj.exam_done = True
+
+                    # ca done set
+                    ca = int(ca)
+                    if ca == 1:
+                        result_obj.exam_done_ca1 = True
+                    elif ca == 2:
+                        result_obj.exam_done_ca2 = True
+                    elif ca == 3:
+                        result_obj.exam_done_ca3 = True
+                    elif ca == 4:
+                        result_obj.exam_done_ca4 = True
+                    #         done
                     result_obj.save()
                     return HttpResponse(message('Exam finish'))
 
@@ -634,7 +645,6 @@ def question(request, semester, ca, subject):
             resultObj = Result.objects.filter(department=request.session['department'], semester=semester, exam=ca,
                                               subject_id=subject.id)
             ca = int(ca)
-            print(ca)
             for obj in resultObj:
                 if ca == 1:
                     obj.ca1_marks = 0

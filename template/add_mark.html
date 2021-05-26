@@ -5,92 +5,184 @@
 {%endblock %}
 
 {%block content%}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
-
-<div class="container">
-    <!-- Breadcrumb -->
-    <div class="d-flex align-items-center pb-3">
-        <div>
-            <!-- Title -->
-            <h2>Student Mark</h2>
-            <!-- End Title -->
-            <!--breadcrum start-->
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb pmd-breadcrumb mb-0">
-                    <li class="breadcrumb-item">
-                        <a href="dashboard.html">Dashboard</a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">Student mark</li>
-                </ol>
-            </nav>
-            <!--breadcrum end-->
-        </div>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
 
-    </div>
-    <!-- /Breadcrumb -->
+<div class="col-md-9 mx-auto">
 
-<!--start mark add-->
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title text-left"><strong class="mdlabel">Result</strong></h4>
+    <div class="col-md-12">
+    <div class="single-col-form shadow-sm p-3 mb-4 bg-white rounded mt-3 mr-2 col-md-10">
+    <p class="text-left font-weight-bolder "> Add and Update Mark
+</div>
+    <div class="card pmd-card single-col-form col-md-10 mr-2">
+        <form method="post">
+            {%csrf_token%}
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-3 ">
+                        <div class="form-group pmd-textfield pmd-textfield-floating-label ">
+                            <label>Email</label>
 
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-3"><span class="mdlabel">University Roll No.</span></div>
-                        <div class="col-sm-9">
-                            <div class="form-group">
-                                <input type="number" data-role='number' id="sr" data-name='sr' class="form-control">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="email" placeholder="Email" name="email"
+                                       value="{{request.user.email}}" readonly>
                             </div>
-                        </div>
-                        <div class="col-sm-3"><span class="mdlabel">Name</span></div>
-                        <div class="col-sm-9">
-                            <div class="form-group">
-                                <input type="text" id="name" data-name='name' class="form-control">
-                            </div>
-                        </div>
 
-<!-- subject-->
-                        <div class="col-sm-3"><span class="mdlabel">Maths</span></div>
-                        <div class="col-sm-3">
-                            <div class="form-group">
-                                <input type="text" id="math" value="100 Out Of" data-name='math' class="form-control"
-                                       readonly>
-                            </div>
-                        </div>
-                        <div class="col-sm-3"><span class="mdlabel">Marks</span></div>
-                        <div class="col-sm-3">
-                            <div class="form-group ">
-                                <input type="number" id="mark" data-name='mark'  class="form-control" required>
-                            </div>
                         </div>
 
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <div class="col-sm-12  ">
-                        <div class="row">
-                            <div class="col-md-4"></div>
-                        <div class="col-md-4 ">
-                             <button type="button" class="btn btn-secondary  btn-block " id="btn-new" data-dismiss="modal">
-                            Submit
-                        </button>
-                        </div>
-                        <div class="col-md-4 ">
+                    <div class="col-2 ">
+                        <div class="form-group pmd-textfield pmd-textfield-floating-label ">
+                            <label>Semester</label>
+                            <select name="semester" class="form-control" id="semester"
+                                    data-branches-url="{%url 'college:load_semester' %}">
+                                <option selected> select</option>
+                                {%for sem in sem_list%}
+                                <option value="{{sem}}">{{sem}}</option>
+                                {%endfor%}
 
+                            </select>
                         </div>
-                        </div>
-
-
+                        <span class="pmd-textfield-focused"></span>
                     </div>
+                    <div class="col-3 ml-5">
+                        <div class="form-group pmd-textfield pmd-textfield-floating-label ">
+                            <label>Subject</label>
+                            <select name="subject" class="form-control" id="subject"
+                                    data-branches-url="{%url 'college:add_question_load_subject' %}">
+                                <option selected> select</option>
+
+                            </select>
+                        </div>
+                        <span class="pmd-textfield-focused"></span>
+                    </div>
+                    <div class="col-3 ">
+                        <div class="form-group pmd-textfield pmd-textfield-floating-label ">
+                            <label>Continuous assessment</label>
+                            <select name="ca" class="form-control" id="ca"
+                                    data-branches-url="{%url 'college:add_question_load_exam_type' %}" required>
+                                <option selected> select</option>
+
+                            </select>
+                        </div>
+                        <span class="pmd-textfield-focused"></span>
+                    </div>
+
+    <!--add mark-->
+<!--student id -->
+                    <div class="col-4 ">
+                    <div class="form-group pmd-textfield pmd-textfield-floating-label ">
+                        <label>Student Email</label>
+                        <select name="student_name" class="form-control" id="student_name"
+                                data-branches-url="{%url 'college:add_mark_load_student' %}" required>
+                            <option selected> select</option>
+
+                        </select>
+                    </div>
+                    <span class="pmd-textfield-focused"></span>
+                </div>
+
+                    <div class="col-12 ">
+                        <div class="form-group pmd-textfield pmd-textfield-floating-label ">
+                            <label>Mark</label>
+                            <input type="text" name="mark" class="form-control" required>
+                        </div>
+                        <span class="pmd-textfield-focused"></span>
+                    </div>
+
+
+
+                    <div class="col-12 ">
+                        <div class="form-group pmd-textfield pmd-textfield-floating-label ">
+
+                            <!-- Success message -->
+                            {%if msg%}
+                            <div class="alert alert-{{color}}" role="alert" id="success_message"><i
+                                    class="glyphicon glyphicon-thumbs-up"></i> {{msg}}!.
+                            </div>
+                            {%endif%}
+
+                        </div>
+                    </div>
+
                 </div>
             </div>
+            <div class="row mb-3">
+                <div class="col-md-4 "></div>
+                <div class="col-md-4 ">
+                    <button type="submit" class="btn btn-secondary btn-block rounded"> Add</button>
+                </div>
+                <div class="col-md-4 "></div>
+            </div>
+
+        </form>
+
     </div>
 
-    <img src="{%static 'college/images/svg/mark.svg'%}" class="img-fluid mx-auto d-block" alt="Responsive image">
+    </div>
 </div>
 
-{%endblock%}
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 
+<script>
+
+    $("#semester").change(function () {
+    var url = $("#subject").attr("data-branches-url");
+    var semester = $(this).val();
+    console.log(semester);
+    mail = '{{request.user.email}}';
+     $.ajax({
+        url: url,
+        data: {
+          'semester': semester,
+          'email': mail,
+        },
+        success: function (data) {
+          $("#subject").html(data);
+        }
+      });
+
+    });
+
+    $("#subject").change(function () {
+    var url = $("#ca").attr("data-branches-url");
+    var sub_id = $(this).val();
+    console.log(sub_id);
+    mail = '{{request.user.email}}';
+     $.ajax({
+        url: url,
+        data: {
+          'sub_id': sub_id,
+          'email': mail,
+        },
+        success: function (data) {
+          $("#ca").html(data);
+        }
+      });
+
+    });
+
+    $("#semester").change(function () {
+    var url = $("#student_name").attr("data-branches-url");
+    var semester = $(this).val();
+    mail = '{{request.user.email}}';
+     $.ajax({
+        url: url,
+        data: {
+          'semester': semester,
+          'email': mail,
+        },
+        success: function (data) {
+          $("#student_name").html(data);
+        }
+      });
+
+    });
+
+
+</script>
+
+
+{%endblock %}

@@ -40,6 +40,7 @@ urlpatterns = [
     path('add_question', staff.add_question, name='add_question'),
     path('add_question_load_subject', staff.add_question_load_subject, name='add_question_load_subject'),
     path('add_question_load_exam_type', staff.add_question_load_exam_type, name='add_question_load_exam_type'),
+    path('add_mark_load_student', staff.add_mark_load_student, name='add_mark_load_student'),
 
     # student
     path('studentsRegistration', student.studentsRegistration, name='studentsRegistration'),

@@ -105,7 +105,7 @@ class Staff(models.Model):
     phone = models.CharField(max_length=15, verbose_name='phone')
     image = models.ImageField(upload_to=path_and_rename, max_length=255, null=True, blank=True)
     department = models.CharField(max_length=255, default='')
-    batch_year = models.CharField(max_length=10,default='')
+    batch_year = models.CharField(max_length=10, default='')
     active = models.BooleanField(default=True)
     last_login = models.DateTimeField(auto_now=True)
     joined_date = models.DateTimeField(auto_now_add=True)
@@ -698,6 +698,21 @@ class Result(models.Model):
     ca3_marks = models.IntegerField(default=0)
     ca4_marks = models.IntegerField(default=0)
 
-    exam_done = models.BooleanField(default=False)
+    exam_done_ca1 = models.BooleanField(default=False)
+    exam_done_ca2 = models.BooleanField(default=False)
+    exam_done_ca3 = models.BooleanField(default=False)
+    exam_done_ca4 = models.BooleanField(default=False)
     exam_date = models.DateTimeField(auto_now_add=True)
+    objects = models.Manager()
+
+
+class Attendance(models.Model):
+    id = models.AutoField(primary_key=True)
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    present = models.BooleanField(default=False)
+    absent = models.BooleanField(default=False)
+    leave = models.BooleanField(default=False)
+    attendance_date = models.DateTimeField(auto_now_add=True)
+
     objects = models.Manager()

@@ -1,0 +1,9 @@
+{%if not students%}
+<option value="" selected >No subject</option>
+{%else%}
+<option value=""> selected </option>
+{% for student in students %}
+<option value="{{ student.email }}">{{ student.email }}</option>
+{% endfor %}
+
+{%endif%}
