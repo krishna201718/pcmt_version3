@@ -708,11 +708,31 @@ class Result(models.Model):
 
 class Attendance(models.Model):
     id = models.AutoField(primary_key=True)
+
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, default=None)
+
+    year = models.IntegerField(default=0)
+    semester = models.IntegerField(default=0)
     present = models.BooleanField(default=False)
     absent = models.BooleanField(default=False)
     leave = models.BooleanField(default=False)
-    attendance_date = models.DateTimeField(auto_now_add=True)
+    attendance_date = models.CharField(default="", max_length=255)
+    attendance_time = models.CharField(default="", max_length=255)
+
+    objects = models.Manager()
+
+class Total(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    student = models.ForeignKey(Student,on_delete=models.CASCADE)
+    department = models.CharField(max_length=255, default='please enter department')
+
+    year = models.IntegerField(default=0)
+    semester = models.IntegerField()
+    present = models.IntegerField()
+    absent = models.IntegerField()
+    leave = models.IntegerField()
 
     objects = models.Manager()

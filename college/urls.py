@@ -50,13 +50,17 @@ urlpatterns = [
     # staff
     path('create_staff', staff.create_staff, name='create_staff'),
     path('edit_staff', staff.edit_staff, name='edit_staff'),
-    path('attendance_view', staff.attendance_view, name='attendance_view'),
-    path('view_staff', staff.view_staff, name='view_staff'),
     path('attendance', staff.attendance, name='attendance'),
+    path('attendanceUpdate', staff.attendanceUpdate, name='attendanceUpdate'),
+    path('attendance_view', staff.attendance_view, name='attendance_view'),
+    path('attendance_status', staff.status, name='attendance_status'),
+    path('view_staff', staff.view_staff, name='view_staff'),
     path('add_mark', staff.add_mark, name='add_mark'),
     path('subject_assign', staff.subject_assign, name='subject_assign'),
     path('create_subject', staff.create_subject, name='create_subject'),
     path('view_subjects', staff.view_subjects, name='view_subjects'),
+    path('load_student_attendance', staff.load_student_attendance, name='load_student_attendance'),
+
 
     # ajax file
     path('load_subject', staff.load_subject, name='load_subject'),

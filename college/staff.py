@@ -5,24 +5,215 @@ from .models import Subject
 from .decorator import allowed_users
 from django.contrib.auth.decorators import login_required
 from .models import Student
-
+from .models import Attendance, Total
 import datetime
 
 year_s = datetime.datetime.today().year
+
 YEARS = list(range(year_s, year_s - 6, -1))
+import datetime
 
 
+# date = datetime.datetime.today().date()
+# date = str(date)
+
+# attendance start here
 def attendance(request):
     user = Staff.object.get(is_teacher=request.user.is_teacher, email=request.user.email)
     semesters = ExamData.objects.filter(teacher=user).distinct()
     sem_list = []
+
     for sem in semesters:
         sem_list.append(sem.semester)
     sem_list = set(sem_list)
     if request.POST:
-        return HttpResponse("<h1> greate </h1>")
-    return render(request, "attendance.html",{'sem_list':sem_list})
+        semester = request.POST.get('semester')
+        subjectId = request.POST.get('subject')
+        date = request.POST.get('date')
 
+        subjectObj = Subject.objects.get(id=subjectId)
+
+        # checking attendance is done or not it return list [date T time]
+        var = request.POST.get('date').split('T')
+
+        students = Student.objects.filter(department=user.department,
+                                          semester=request.POST.get('semester'))
+        length = Attendance.objects.filter(attendance_date=str(var[0])).count()
+
+        if length == 0:
+            for student in students:
+                if student.email in request.POST.keys():
+                    status = int(request.POST.get(student.email))
+
+                    studentObj = Student.objects.get(email=student.email)
+                    attendanceObj = Attendance()
+                    attendanceObj.staff = user
+                    attendanceObj.semester = semester
+                    attendanceObj.student = studentObj
+                    attendanceObj.subject = subjectObj
+                    attendanceObj.attendance_date = var[0]
+                    attendanceObj.attendance_time = var[1]
+
+                    if status == 1:
+                        attendanceObj.present = True
+                    elif status == 2:
+                        attendanceObj.absent = True
+                    elif status == 3:
+                        attendanceObj.leave = True
+                attendanceObj.save()
+            msg = "Attendance saved"
+            color = "success"
+        else:
+            msg = "Attendance already done for the Day " + date
+            color = "danger"
+
+        return render(request, "attendance.html", {
+            'msg': msg, 'color': color,
+            'sem_list': sem_list, 'students': students})
+
+    return render(request, "attendance.html", {'sem_list': sem_list, })
+
+
+def attendanceUpdate(request):
+    user = Staff.object.get(is_teacher=request.user.is_teacher, email=request.user.email)
+    semesters = ExamData.objects.filter(teacher=user).distinct()
+    sem_list = []
+
+    for sem in semesters:
+        sem_list.append(sem.semester)
+    sem_list = set(sem_list)
+    if request.POST:
+        semester = request.POST.get('semester')
+        subjectId = request.POST.get('subject')
+        date = request.POST.get('date')
+        subjectObj = Subject.objects.get(id=subjectId)
+
+        # checking attendance is done or not it return list [date T time]
+        var = request.POST.get('date').split('T')
+
+        students = Student.objects.filter(department=user.department,
+                                          semester=request.POST.get('semester'))
+        length = Attendance.objects.filter(attendance_date=str(var[0])).count()
+
+        if length == 0:
+            for student in students:
+                if student.email in request.POST.keys():
+                    status = int(request.POST.get(student.email))
+                    studentObj = Student.objects.get(email=student.email)
+                    attendanceObj = Attendance()
+                    attendanceObj.staff = user
+                    attendanceObj.semester = semester
+                    attendanceObj.student = studentObj
+                    attendanceObj.subject = subjectObj
+                    attendanceObj.attendance_date = var[0]
+                    attendanceObj.attendance_time = var[1]
+
+                    if status == 1:
+                        attendanceObj.present = True
+                        attendanceObj.save()
+                    elif status == 2:
+                        attendanceObj.absent = True
+                        attendanceObj.save()
+                    elif status == 3:
+                        attendanceObj.leave = True
+                    attendanceObj.save()
+            msg = "New attendance saved"
+            color = "success"
+        else:
+
+            for student in students:
+                if student.email in request.POST.keys():
+                    studentObj = Student.objects.get(email=student.email)
+                    attendanceObj = Attendance.objects.get(attendance_date=var[0],
+                                                           student=studentObj, staff=user, subject=subjectObj)
+
+                    status = int(request.POST.get(student.email))
+                    attendanceObj.attendance_date = var[0]
+                    attendanceObj.attendance_time = var[1]
+
+                    if status == 1:
+                        attendanceObj.present = True
+                        attendanceObj.absent = False
+                        attendanceObj.leave = False
+                        attendanceObj.save()
+                    elif status == 2:
+                        attendanceObj.present = False
+                        attendanceObj.absent = True
+                        attendanceObj.leave = False
+                        attendanceObj.save()
+                    elif status == 3:
+                        attendanceObj.present = False
+                        attendanceObj.absent = False
+                        attendanceObj.leave = True
+                        attendanceObj.save()
+
+            msg = "Attendance Updated At " + var[0] + ' ' + var[1]
+            color = "success"
+
+        return render(request, "attendanceUpdate.html", {
+            'msg': msg, 'color': color,
+            'sem_list': sem_list, 'students': students})
+
+    return render(request, "attendanceUpdate.html", {'sem_list': sem_list, })
+
+
+def attendance_view(request):
+    if request.POST and not request.user.is_student:
+        if request.POST.get('university_roll') and not request.user.is_student:
+            university_roll = request.POST.get('university_roll')
+            User = Student.objects.get(university_roll=university_roll)
+            return render(request, "attendance_view.html", context={'user': User, 'YEARS': YEARS})
+        else:
+            year = request.POST.get('go_year')
+            semester = request.POST.get('go_semester')
+            User = Student.objects.filter(semester=semester, year=year)
+            for user in User:
+                student = Student.objects.get(email=user.email)
+                total_leave = Attendance.objects.filter(leave=True, student=user).count()
+                total_absent = Attendance.objects.filter(absent=True, student=user).count()
+                total_present = Attendance.objects.filter(present=True, student=user).count()
+
+                if Total.objects.filter(student=student, semester=semester).count() == 0:
+                    totalObj = Total()
+                    totalObj.student = student
+                    totalObj.department = student.department
+                    totalObj.semester = semester
+                    totalObj.year = year_s
+                    totalObj.present = total_present
+                    totalObj.absent = total_absent
+                    totalObj.leave = total_leave
+                    totalObj.save()
+                else:
+                    totalObj = Total.objects.get(student=student, semester=semester)
+                    totalObj.present = total_present
+                    totalObj.absent = total_absent
+                    totalObj.leave = total_leave
+                    totalObj.save()
+
+            totalObj = Total.objects.filter(year=year, semester=semester,
+                                          department=request.session['department'])
+
+            return render(request, "attendance_view.html", context={'totalObj': totalObj, 'YEARS': YEARS})
+    elif request.user.is_HOD:
+        user = {}
+        return render(request, "attendance_view.html", context={'user': user, 'YEARS': YEARS})
+    elif request.user.is_admin:
+        user = {}
+        return render(request, "attendance_view.html", context={'user': user, 'YEARS': YEARS})
+    elif request.user.is_student:
+        user = Student.objects.filter(email=request.session['email'])
+        return render(request, "attendance_view.html", context={'user': user, 'YEARS': YEARS})
+
+    elif request.user.is_BOC:
+        # user = Student.objects.filter(is_student=True, year=request.user.year, semester=request.user.semester)
+        user = {}
+        return render(request, "attendance_view.html", context={'user': user, 'YEARS': YEARS})
+    return render(request, "attendance_view.html", context={'YEARS': YEARS})
+
+    return render(request, "attendance_view.html")
+
+
+# attendance end
 
 def add_mark(request):
     user = Staff.object.get(is_teacher=request.user.is_teacher, email=request.user.email)
@@ -54,7 +245,7 @@ def add_mark(request):
                     result_obj.ca1_marks = mark
                     result_obj.exam_done_ca1 = True
                 else:
-                    msg = 'It is morethan fullmarks is '+str(examdata.total_marks)
+                    msg = 'It is morethan fullmarks is ' + str(examdata.total_marks)
                     color = 'danger'
                     return render(request, "add_mark.html", {'sem_list': sem_list, 'msg': msg, 'color': color})
 
@@ -63,7 +254,7 @@ def add_mark(request):
                     result_obj.ca2_marks = mark
                     result_obj.exam_done_ca2 = True
                 else:
-                    msg = 'It is morethan fullmarks is ' +str(examdata.total_marks)
+                    msg = 'It is morethan fullmarks is ' + str(examdata.total_marks)
                     color = 'danger'
                     return render(request, "add_mark.html", {'sem_list': sem_list, 'msg': msg, 'color': color})
             elif ca == 3:
@@ -71,7 +262,7 @@ def add_mark(request):
                     result_obj.ca3_marks = mark
                     result_obj.exam_done_ca3 = True
                 else:
-                    msg = 'It is morethan fullmarks is ' +str(examdata.total_marks)
+                    msg = 'It is morethan fullmarks is ' + str(examdata.total_marks)
                     color = 'danger'
                     return render(request, "add_mark.html", {'sem_list': sem_list, 'msg': msg, 'color': color})
             elif ca == 4:
@@ -79,7 +270,7 @@ def add_mark(request):
                     result_obj.ca4_marks = mark
                     result_obj.exam_done_ca4 = True
                 else:
-                    msg = 'It is morethan fullmarks is ' +str(examdata.total_marks)
+                    msg = 'It is morethan fullmarks is ' + str(examdata.total_marks)
                     color = 'danger'
                     return render(request, "add_mark.html", {'sem_list': sem_list, 'msg': msg, 'color': color})
             result_obj.save()
@@ -267,12 +458,6 @@ def create_staff(request):
 
 def edit_staff(request):
     return render(request, 'edit_staff.html')
-
-
-def attendance_view(request):
-    if request.POST:
-        return HttpResponse("<h1> greate </h1>")
-    return render(request, "attendance_view.html")
 
 
 def view_staff(request):
@@ -634,3 +819,31 @@ def add_mark_load_student(request):
         else:
             students = {}
             return render(request, 'loadstudent.html', {'students': students})
+
+
+def load_student_attendance(request):
+    if request.GET.get('semester') is "":
+        subject = {}
+        return render(request, 'loadstudentattendance.html', {'Subjects': subject})
+    elif request.GET.get('email') is "":
+        subject = {}
+        return render(request, 'loadstudentattendance.html', {'Subjects': subject})
+    else:
+        dep = Staff.object.get(email=request.GET.get('email'))
+        semester = request.GET.get('semester')
+
+        if Student.objects.filter(semester=semester, department=dep.department):
+            students = Student.objects.filter(semester=semester, department=dep.department)
+            return render(request, 'loadstudentattendance.html', {'students': students})
+        else:
+            students = {}
+            return render(request, 'loadstudentattendance.html', {'students': students})
+
+
+def status(request):
+    if Student.objects.get(email=request.GET.get('email')):
+        students = Student.objects.get(email=request.GET.get('email'))
+        return render(request, 'status.html', {'students': students})
+    else:
+        students = {}
+        return render(request, 'status.html', {'students': students})

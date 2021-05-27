@@ -1,0 +1,18 @@
+
+
+{%for student in students%}
+<tr>
+    <td data-title="Candidate"></td>
+    <td data-title="Candidate">{{student.email}}</td>
+    <td data-title="Candidate">{{student.department}}</td>
+    <td data-title="">
+        <select name="{{student.email}}" class="form-control">
+            <option selected> select</option>
+            <option value="1">Present</option>
+            <option value="2">Absent</option>
+            <option value="3">Leave</option>
+        </select>
+    </td>
+</tr>
+{%endfor%}
+

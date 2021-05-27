@@ -15,7 +15,7 @@
     <div class="col-md-12">
         <div class="single-col-form shadow-sm p-3 mb-4 bg-white rounded mt-3 mr-2 col-md-10">
             <!-- Title -->
-            <h1 id="leave">Student Attandance</h1>
+            <h1 id="leave">Student Attendance Update</h1>
             <!-- End Title -->
             <!--breadcrum start-->
             <nav aria-label="breadcrumb">
@@ -27,7 +27,6 @@
                 </ol>
             </nav>
             <!--breadcrum end-->
-
         </div>
         <div class="card pmd-card single-col-form col-md-10 mr-2">
             <form method="post">
@@ -82,30 +81,24 @@
                     </div>
 
 
-                    <!--student id -->
-                    <!--content area start-->
                     <div class="row">
-                        <div class="col-12 mx-auto">
-                            <table id="dt-basic-checkbox" class="table  pmd-table pmd-table-card table-hover "
-                                   cellspacing="0" width="100%">
-                                <thead class="thead-light">
-                                <tr>
-                                    <th></th>
-                                    <th><strong>Email id</strong></th>
-                                    <th><strong>Department</strong></th>
-                                    <th><strong>Status</strong></th>
+                    <div class="col-4 ">
+                    <div class="form-group pmd-textfield pmd-textfield-floating-label ">
+                        <label>Student Email</label>
+                        <select name="student_email" class="form-control" id="student_email"
+                                data-branches-url="{%url 'college:add_mark_load_student' %}" required>
+                            <option selected> select</option>
 
-                                </tr>
-                                </thead>
-                                <tbody id="student">
-<!-- student template add -->
+                        </select>
+                    </div>
+                    <span class="pmd-textfield-focused"></span>
+                </div>
 
-                                </tbody>
-
-                                </tfoot>
-                            </table>
-                        </div>
-
+<!--   present, absent and leave-->
+                <div class="col-4 ">
+                    <div id="status"></div>
+                    <span class="pmd-textfield-focused"></span>
+                </div>
                     </div>
 
                     <!-- content area end -->
@@ -122,14 +115,15 @@
                     </div>
 
                 </div>
-        </div>
         <div class="row mb-3">
             <div class="col-md-4 "></div>
             <div class="col-md-4 ">
-                <button type="submit" class="btn btn-secondary btn-block rounded"> Submit</button>
+                <button type="submit" class="btn btn-secondary btn-block rounded"> Update</button>
             </div>
             <div class="col-md-4 "></div>
         </div>
+        </div>
+
 
         </form>
 
@@ -183,7 +177,7 @@
     });
 
     $("#semester").change(function () {
-    var url = "/load_student_attendance";
+    var url = $("#student_email").attr("data-branches-url");
     console.log(url);
     var semester = $(this).val();
     mail = '{{request.user.email}}';
@@ -194,12 +188,26 @@
           'email': mail,
         },
         success: function (data) {
-          $("#student").html(data);
+          $("#student_email").html(data);
         }
       });
 
     });
 
+    $("#student_email").change(function () {
+    var url = "/attendance_status";
+    var mail = $(this).val();
+     $.ajax({
+        url: url,
+        data: {
+          'email': mail,
+        },
+        success: function (data) {
+          $("#status").html(data);
+        }
+      });
+
+    });
 
 
 
